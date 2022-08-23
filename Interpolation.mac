@@ -1,0 +1,123 @@
+/*Fonctions basiques*/
+nth(L,n):=last(firstn(L,n));
+solut(s,n):=rhs(nth(s,n));
+
+/*Somme et produit*/
+
+Somme(L):=block(
+	N:length(L),
+	temp:0,
+	for i : 1 thru length(L) do
+		temp:temp+(L[i]),
+	return(temp)   
+)$
+
+Sigma1(Lc,p):=block(
+	L:Lc*makelist(p[i], i, 1, length(Lc)),
+	temp:0,
+	for i : 1 thru length(Lc) do
+		temp:temp+(L[i]),
+	return(temp)   
+)$
+
+
+Pr(min,max,var,p,k):=block(
+	L:var-makelist(p[i+k], i, min, max),
+	temp:1,
+	for i : 1 thru max-min do
+		temp:temp.(L[i]),
+	return(temp)
+)$
+
+Pr_Liste(ListeValeurs):=block(
+	L:ListeValeurs,
+   N:length(ListeValeurs),
+	temp:1,
+	for i : 1 thru N do
+		temp:temp.(L[i]),
+	return(temp)
+)$
+
+Pr_Liste_sauf(ListeValeurs,sauf):=block(
+	L:ListeValeurs,
+   N:length(ListeValeurs),
+	temp:1,
+	for i : 1 thru sauf-1 do
+		temp:temp.(L[i]),
+  for i : sauf+1 thru N do
+        temp:temp.(L[i]),
+	return(temp)
+)$
+
+Pr_sauf_symbolique(min,mid,max,var,p,k):=block(
+	temp:1,
+   L1:var-makelist(p[i+k], i, min, mid-1),
+   L2:var-makelist(p[i+k], i, mid+1, max),
+	for i : 1 thru mid do
+		temp:temp.(L1[i]),
+   for j : 1 thru max-mid do
+        temp:temp.(L2[j]),  
+	return(temp)
+)$
+
+Pr_sauf_concret(sauf,var,Liste_PointsInterpolation):=block(
+   N:length(Liste_PointsInterpolation),
+   L:-Liste_PointsInterpolation+makelist(var, i, 1, N),
+	temp:1,
+	for i : 1 thru sauf-1 do
+        temp:temp.(L[i]),
+   for i : sauf+1 thru N do
+        temp:temp.(L[i]), 
+     return(temp)
+)$
+
+/*Fonctions specifiques*/
+
+Polynome(func,var,deg):=block(
+    Lc:makelist(func[i], i, 0, deg),
+    L:Lc.makelist(var^i, i, 0, deg),
+    return(L)   
+)$
+
+Coeff1(var,k,n):=block(
+    L:[],
+    for i : 0 thru n do
+        L:append(L,[var[k+i]]),
+    return(f[L])
+)$
+
+Coeff(var,k,n):=block(
+    L:f[makelist(var[k+i],i,0,n)],
+    return(L)
+)$
+
+PolyDiff(k,n):=block(
+    Default:Coeff(p,k,0),
+    if n=0 then
+        return (Default)
+    else
+        poly:Default,
+        for i : 1 thru n do 
+            (for j : 1 thru i do 
+                produit:Pr(0,i,x,p,k),
+                poly:poly+Coeff(p,k,i)*produit
+    ),
+	return(poly)
+)$
+
+PolynomeLagrange_symbolique(N):=block(
+    Lc:[],
+    for i : 0 thru N do
+        Lc:append(Lc,[Pr_sauf_symbolique(0,i,N,x,x,0)/Pr_sauf_symbolique(0,i,N,x[i],x,0)]),
+    L:Lc.makelist(f[i], i, 0, N),
+    return(L)
+)$
+
+PolynomeLagrange_concret(f,var,L_Points_interpolations):=block(
+    Lc:L_Points_interpolations,
+    L:[],
+    N:length(L_Points_interpolations),
+    for i : 1 thru N do
+        L:append(L,[f(Lc[i])*Pr_sauf_concret(i,var,Lc)/Pr_Liste_sauf(Lc-i,i)]),
+    return(Somme(L))
+)$
